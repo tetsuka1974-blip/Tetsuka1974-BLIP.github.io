@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="個人ゲーム開発者 TKUコンセプトゲームP の作品、東京ゲームダンジョン出展歴、経歴をまとめたホームページ。">
+<title>TKUコンセプトゲームP</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=DotGothic16&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* Layout: 夜空の一枚スクロール。ツインブレイズの「炎と氷」を2色の差し色に、ゲーム画面のようなドット文字をラベルに使う */
+:root {
+  --night: #120f24;
+  --panel: #1c1836;
+  --line: #322c55;
+  --ink: #f3effc;
+  --muted: #aaa3c9;
+  --flame: #ff6a45;
+  --frost: #5cc8ff;
+  --display: "Dela Gothic One", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+  --dot: "DotGothic16", "MS Gothic", monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0;
+  background: var(--night);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.8;
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, rgba(255,255,255,.55), transparent 60%),
+    radial-gradient(1px 1px at 72% 9%, rgba(255,255,255,.45), transparent 60%),
+    radial-gradient(1.5px 1.5px at 88% 42%, rgba(255,255,255,.4), transparent 60%),
+    radial-gradient(1px 1px at 34% 64%, rgba(255,255,255,.35), transparent 60%),
+    radial-gradient(1px 1px at 58% 83%, rgba(255,255,255,.35), transparent 60%);
+  background-attachment: fixed;
+}
+a { color: inherit; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--frost); outline-offset: 3px; border-radius: 4px; }
+img { max-width: 100%; height: auto; display: block; }
+.wrap {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+/* header */
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--night); }
+.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9;
+  background: color-mix(in srgb, var(--night) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 8px; }
+.top img { height: 40px; width: auto; }
+.top .right { display: flex; align-items: center; gap: 20px; }
+.top nav { display: flex; gap: 4px 18px; flex-wrap: wrap; justify-content: flex-end; font-family: var(--dot); font-size: 14px; }
+.top nav a { text-decoration: none; color: var(--muted); }
+.top nav a:hover { color: var(--ink); }
+.lang { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; background: var(--panel); flex-shrink: 0; }
+.lang button {
+  font: 13px var(--dot); color: var(--muted); background: none; border: 0;
+  padding: 4px 12px; border-radius: 999px; cursor: pointer;
+}
+.lang button[aria-pressed="true"] { background: var(--frost); color: var(--night); }
+
+/* hero */
+.hero { position: relative; overflow: hidden; }
+.hero::before {
+  content: ""; position: absolute; inset: 0;
+  background:
+    radial-gradient(60% 70% at 78% 40%, color-mix(in srgb, var(--flame) 30%, transparent), transparent 70%),
+    radial-gradient(50% 60% at 8% 90%, color-mix(in srgb, var(--frost) 22%, transparent), transparent 70%);
+  pointer-events: none;
+}
+.hero .wrap { position: relative; display: grid; grid-template-columns: 1.1fr .9fr; gap: 32px; align-items: center; padding-block: 56px 48px; }
+.hero .copy { min-width: 0; }
+.label { font-family: var(--dot); font-size: 14px; letter-spacing: .12em; color: var(--frost); margin: 0 0 12px; }
+.label.flame { color: var(--flame); }
+.hero h1 {
+  font-family: var(--display); font-weight: 400;
+  font-size: clamp(40px, 7vw, 76px); line-height: 1.05; margin: 0 0 8px;
+  text-wrap: balance;
+  background: linear-gradient(100deg, var(--frost) 0%, var(--ink) 48%, var(--flame) 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.hero .en { font-family: var(--dot); color: var(--muted); margin: 0 0 20px; letter-spacing: .2em; }
+.hero p.lead { font-size: 18px; max-width: 32em; margin: 0 0 20px; }
+.credits { display: grid; grid-template-columns: auto 1fr; gap: 2px 16px; font-size: 14px; color: var(--muted); margin: 0 0 28px; }
+.credits dt { font-family: var(--dot); }
+.credits dd { margin: 0; color: var(--ink); }
+.btns { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 22px; border-radius: 999px; text-decoration: none; font-weight: 700;
+  border: 1px solid var(--line); background: var(--panel);
+}
+.btn.primary { background: var(--flame); border-color: var(--flame); color: #1a0d08; }
+.btn:hover { filter: brightness(1.1); }
+.hero .art { position: relative; min-width: 0; }
+.hero .art img { width: 100%; max-width: 440px; margin-left: auto; border-radius: 20px; box-shadow: 0 24px 60px -20px color-mix(in srgb, var(--flame) 60%, transparent); }
+.badge-next {
+  position: absolute; left: 0; bottom: 18px;
+  background: var(--night); border: 1px solid var(--frost); color: var(--frost);
+  font-family: var(--dot); font-size: 13px; padding: 6px 12px; border-radius: 8px;
+}
+
+/* sections */
+section { padding-block: 64px; border-top: 1px solid var(--line); scroll-margin-top: 56px; }
+h2 { font-family: var(--display); font-weight: 400; font-size: clamp(28px, 4vw, 40px); line-height: 1.2; margin: 0 0 28px; text-wrap: balance; }
+h3 { font-size: 20px; margin: 0 0 6px; line-height: 1.4; }
+.intro { color: var(--muted); max-width: 40em; margin: -12px 0 28px; }
+
+/* profile */
+.profile { display: grid; grid-template-columns: 280px 1fr; gap: 40px; align-items: start; }
+.profile .pic { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 16px; }
+.profile .text { min-width: 0; }
+.profile .text p { max-width: 36em; margin: 0 0 16px; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 24px 0 0; padding: 0; list-style: none; }
+.facts li { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; }
+.facts b { display: block; font-family: var(--dot); font-weight: 400; font-size: 13px; color: var(--muted); }
+
+/* games */
+.games { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+.game { display: grid; grid-template-columns: 112px 1fr; gap: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+.game img { width: 112px; height: 112px; object-fit: cover; border-radius: 12px; }
+.game .body { min-width: 0; display: flex; flex-direction: column; }
+.game .meta { font-family: var(--dot); font-size: 13px; color: var(--muted); margin: 0 0 4px; }
+.game p { margin: 0 0 8px; font-size: 14px; line-height: 1.7; }
+.game .by { color: var(--muted); font-size: 13px; }
+.game a.play { margin-top: auto; align-self: flex-start; font-size: 14px; font-weight: 700; color: var(--frost); text-decoration: none; }
+.game a.play:hover { text-decoration: underline; }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 8px; }
+.tag { font-size: 12px; padding: 1px 8px; border-radius: 6px; border: 1px solid var(--line); color: var(--muted); }
+.tag.dev { border-color: var(--flame); color: var(--flame); }
+
+/* events */
+.events { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; }
+.events > * { min-width: 0; }
+.dungeon { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.dungeon li { display: grid; grid-template-columns: 64px 1fr; gap: 16px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; }
+.dungeon .no { font-family: var(--display); font-size: 28px; color: var(--flame); text-align: center; line-height: 1; }
+.dungeon .no small { display: block; font-family: var(--dot); font-size: 11px; color: var(--muted); margin-top: 4px; }
+.dungeon .d { font-family: var(--dot); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.dungeon .w { font-size: 15px; }
+.photos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.photos figure { margin: 0; }
+.photos img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 12px; }
+.photos figure.wide { grid-column: 1 / -1; }
+.photos figcaption { font-size: 13px; color: var(--muted); margin-top: 6px; }
+
+/* timeline */
+.timeline { list-style: none; margin: 0; padding: 0; position: relative; max-width: 820px; }
+.timeline::before { content: ""; position: absolute; left: 7px; top: 8px; bottom: 8px; width: 2px; background: linear-gradient(var(--flame), var(--frost)); }
+.timeline li { position: relative; padding: 0 0 22px 36px; }
+.timeline li::before { content: ""; position: absolute; left: 0; top: 7px; width: 16px; height: 16px; border-radius: 50%; background: var(--night); border: 2px solid var(--frost); }
+.timeline li.key::before { border-color: var(--flame); background: var(--flame); }
+.timeline .d { font-family: var(--dot); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.timeline .t { font-weight: 700; }
+.timeline .x { font-size: 14px; color: var(--muted); }
+
+/* story */
+.story { display: grid; grid-template-columns: 1fr 300px; gap: 40px; align-items: start; }
+.story > * { min-width: 0; }
+.chat { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; max-width: 620px; }
+.chat li { display: grid; gap: 2px; }
+.chat .who { font-family: var(--dot); font-size: 12px; color: var(--muted); }
+.chat .say { padding: 10px 16px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); line-height: 1.7; }
+.chat li.t { justify-items: end; text-align: right; }
+.chat li.t .say { border-color: var(--frost); border-bottom-right-radius: 4px; }
+.chat li.z { justify-items: start; }
+.chat li.z .say { border-color: var(--flame); border-bottom-left-radius: 4px; }
+.chat li.think .say { border-style: dashed; color: var(--muted); }
+.chat li.n { justify-items: center; text-align: center; font-family: var(--dot); color: var(--muted); padding-block: 8px; }
+.chat li.end { justify-items: center; text-align: center; padding-top: 12px; }
+.chat li.end .say { background: none; border: 0; font-family: var(--display); font-size: clamp(18px, 2.6vw, 24px); line-height: 1.6; color: var(--ink); }
+.story aside { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: grid; gap: 10px; font-size: 14px; }
+.story aside img { border-radius: 12px; }
+.story aside .d { font-family: var(--dot); color: var(--flame); font-size: 13px; }
+.story aside .eq { font-family: var(--dot); color: var(--frost); }
+.source { font-size: 13px; color: var(--muted); margin: 24px 0 0; }
+@media (max-width: 820px) { .story { grid-template-columns: 1fr; } .story aside { max-width: 360px; } }
+
+/* team & links */
+.team { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; list-style: none; margin: 0; padding: 0; }
+.team li { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+.team b { display: block; font-size: 17px; }
+.team span { font-size: 13px; color: var(--muted); }
+.links { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; list-style: none; margin: 0; padding: 0; }
+.links a { display: block; text-decoration: none; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+.links a:hover { border-color: var(--frost); }
+.links b { display: block; }
+.links span { font-family: var(--dot); font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+
+/* visitor counters */
+.counters { border-top: 1px solid var(--line); padding-block: 40px; }
+.counters .wrap { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.counter { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px 22px; display: grid; gap: 4px; }
+.counter b { font-family: var(--dot); font-weight: 400; font-size: 14px; color: var(--muted); letter-spacing: .08em; }
+.counter output { font-family: var(--display); font-size: 40px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.counter.total output { color: var(--frost); }
+.counter.today output { color: var(--flame); }
+.counters .note { grid-column: 1 / -1; margin: 0; font-size: 12px; color: var(--muted); }
+
+footer { border-top: 1px solid var(--line); padding-block: 32px; color: var(--muted); font-size: 13px; }
+footer .wrap { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+@media (max-width: 820px) {
+  .hero .wrap { grid-template-columns: 1fr; padding-block: 32px 40px; }
+  .hero .art { order: -1; }
+  .hero .art img { margin: 0 auto; }
+  .badge-next { left: 8px; }
+  .profile { grid-template-columns: 1fr; }
+  .profile .pic { max-width: 260px; }
+  .events { grid-template-columns: 1fr; }
+  .top nav { display: none; }
+}
+@media (max-width: 400px) {
+  .game { grid-template-columns: 80px 1fr; }
+  .game img { width: 80px; height: 80px; }
+}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <a href="#top" aria-label="TKUコンセプトゲームP" data-i18n-label="home"><img src="img/logo.png" alt="TKUコンセプトゲームP"></a>
+    <div class="right">
+      <nav aria-label="Sections">
+        <a href="#profile" data-i18n="nav1">プロフィール</a>
+        <a href="#games" data-i18n="nav2">ゲーム</a>
+        <a href="#events" data-i18n="nav3">イベント</a>
+        <a href="#history" data-i18n="nav4">経歴</a>
+        <a href="#links" data-i18n="nav5">リンク</a>
+      </nav>
+      <div class="lang" role="group" aria-label="Language / 言語">
+        <button type="button" id="lang-ja" data-lang="ja" aria-pressed="true">日本語</button>
+        <button type="button" id="lang-en" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <div class="hero">
+    <div class="wrap">
+      <div class="copy">
+        <p class="label flame">NOW DEVELOPING ▶ 2D ACTION</p>
+        <h1 data-i18n="h1">ツインブレイズ</h1>
+        <p class="en" data-i18n="h1sub">TWIN BLAZE</p>
+        <p class="lead" data-i18n="lead">2人の少女が助け合いながら、エンディングまで一気に駆け抜ける爽快なアクションゲーム。2026年2月に開発を始め、東京ゲームダンジョン12・13・14で展示しました。</p>
+        <dl class="credits">
+          <dt>CHARACTER</dt><dd data-i18n="c1">ザキチ</dd>
+          <dt>MUSIC</dt><dd data-i18n="c2">ハリボ</dd>
+          <dt>VOICE</dt><dd data-i18n="c3">みたま／葉音（はのん）</dd>
+          <dt>MOTIF</dt><dd data-i18n="c4">ボカロ曲「Resonance ～共鳴～」</dd>
+        </dl>
+        <div class="btns">
+          <a class="btn primary" href="https://unityroom.com/games/twinblaze" target="_blank" rel="noopener" data-i18n="play">unityroomで遊ぶ</a>
+          <a class="btn" href="#games" data-i18n="more">ほかのゲームを見る</a>
+        </div>
+      </div>
+      <div class="art">
+        <img src="img/twinblaze-key.jpg" data-i18n-alt="a_key" alt="ツインブレイズのキービジュアル。炎をまとった赤髪の少女とロゴ" width="675" height="800">
+        <span class="badge-next" data-i18n="badge">PC向け ／ Unity製</span>
+      </div>
+    </div>
+  </div>
+
+  <section id="profile">
+    <div class="wrap">
+      <p class="label">PROFILE</p>
+      <h2 data-i18n="p_h">TKUコンセプトゲームP</h2>
+      <div class="profile">
+        <div class="pic"><img src="img/avatar.png" data-i18n-alt="a_avatar" alt="TKUコンセプトゲームPのロゴキャラクター" width="800" height="800"></div>
+        <div class="text">
+          <p data-i18n="p1">Unityでゲームを作ってプロデュースしている、個人ゲーム開発者です。Unityをさわって4年目。作ったフリーゲームは unityroom で公開していて、主にPC向けですが、スマホで遊べるゲームもあります。</p>
+          <p data-i18n="p2">プログラムは自分で書き、イラスト・音楽・ボイスはボカロPやイラストレーターの仲間とコラボして作っています。名前の「P」は、ボカロPの「P」から。TKはイニシャル、UはUnityです。</p>
+          <p data-i18n="p3">2025年8月の東京ゲームダンジョン9で初出展して以来、毎回のように出展しています。開発の記録は note で、日々の進捗は X で発信中です。</p>
+          <ul class="facts">
+            <li><b data-i18n="f1k">開発環境</b>Unity 6.3 LTS ／ C#</li>
+            <li><b data-i18n="f2k">得意ジャンル</b><span data-i18n="f2v">2Dアクション、タワーディフェンス、カジュアル</span></li>
+            <li><b data-i18n="f3k">レーベル</b>TKUGAMES</li>
+            <li><b data-i18n="f4k">Xフォロワー</b><span data-i18n="f4v">3,100人（2026年1月）</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="games">
+    <div class="wrap">
+      <p class="label">GAMES</p>
+      <h2 data-i18n="g_h">ゲーム</h2>
+      <p class="intro" data-i18n="g_in">すべて unityroom で無料公開中。ブラウザですぐ遊べます。</p>
+      <div class="games">
+        <article class="game">
+          <img src="img/icon-twinblaze14.jpg" data-i18n-alt="a_g0" alt="ツインブレイズ ゲムダン14出展版のアイコン。なかよしグミの袋と妖精の少女" width="512" height="512" loading="lazy">
+          <div class="body">
+            <p class="meta">2026.10 ／ PC</p>
+            <h3 data-i18n="g0t">ツインブレイズ ゲムダン14出展版</h3>
+            <div class="tags"><span class="tag dev" data-i18n="g0a">最新版</span><span class="tag" data-i18n="g1b">2Dアクション</span><span class="tag" data-i18n="g0b">約15分</span></div>
+            <p data-i18n="g0p">東京ゲームダンジョン14に出展したバージョン。15分ほどでクリアできますが、途中の「なかよしグミシステム」で遊んでいると時間が溶けるかも。</p>
+            <p class="by" data-i18n="g0c">A/D：移動 ／ Space：ジャンプ ／ M：攻撃 ／ 左Shift：キャラチェンジ（ゲームパッド対応）</p>
+            <a class="play" href="https://unityroom.com/games/twinblaze14" target="_blank" rel="noopener" data-i18n="playa">unityroomで遊ぶ →</a>
+          </div>
+        </article>
+        <article class="game">
+          <img src="img/icon-twinblaze13.jpg" data-i18n-alt="a_g7" alt="ツインブレイズ ゲムダン13出展版のアイコン" width="480" height="480" loading="lazy">
+          <div class="body">
+            <p class="meta">2026.08 ／ PC</p>
+            <h3 data-i18n="g7t">ツインブレイズ ゲムダン13出展版</h3>
+            <div class="tags"><span class="tag" data-i18n="g1b">2Dアクション</span><span class="tag" data-i18n="g0b">約15分</span></div>
+            <p data-i18n="g7p">東京ゲームダンジョン13（2026年8月8日）に出展したバージョン。15分ほどでクリアできます。</p>
+            <p class="by" data-i18n="g7c">A/D：移動 ／ Space：ジャンプ ／ M：攻撃 ／ 左Shift：キャラ入れ替え（ゲームパッド対応）</p>
+            <a class="play" href="https://unityroom.com/games/twinblaze_v2" target="_blank" rel="noopener" data-i18n="playa">unityroomで遊ぶ →</a>
+          </div>
+        </article>
+        <article class="game">
+          <img src="img/icon-twinblaze.jpg" data-i18n-alt="a_g1" alt="ツインブレイズのアイコン" width="480" height="480" loading="lazy">
+          <div class="body">
+            <p class="meta">2026 ／ PC</p>
+            <h3 data-i18n="g1t">ツインブレイズ</h3>
+            <div class="tags"><span class="tag dev" data-i18n="g1a">開発中</span><span class="tag" data-i18n="g1b">2Dアクション</span></div>
+            <p data-i18n="g1p">2つの運命が、今、共鳴する。2人の少女が助け合って駆け抜けるアクション。</p>
+            <p class="by" data-i18n="g1c">キャラ：ザキチ ／ 音楽：ハリボ</p>
+            <a class="play" href="https://unityroom.com/games/twinblaze" target="_blank" rel="noopener" data-i18n="playa">unityroomで遊ぶ →</a>
+          </div>
+        </article>
+        <article class="game">
+          <img src="img/icon-sparkgaiden.jpg" data-i18n-alt="a_g8" alt="スパークライン外伝のアイコン。ドラゴンに乗った少女たちと青い炎の巨人" width="480" height="480" loading="lazy">
+          <div class="body">
+            <p class="meta">2025.12 ／ PC</p>
+            <h3 data-i18n="g8t">スパークライン外伝</h3>
+            <div class="tags"><span class="tag" data-i18n="g8a">unity1week</span><span class="tag" data-i18n="g6a">横スクロールシューティング</span><span class="tag" data-i18n="g6b">約10分</span></div>
+            <p data-i18n="g8p">Unity1週間ゲームジャム（お題「もうひとつ」）の参加作品。人生初の企画書を書き、宅録声優のみたまさんと1週間で作ったガチンコ横スクロールシューティングです。</p>
+            <p class="by" data-i18n="g8c">WASD：移動 ／ Space・左クリック：攻撃 ／ M：電線</p>
+            <a class="play" href="https://unityroom.com/games/suparkgaiden" target="_blank" rel="noopener" data-i18n="playa">unityroomで遊ぶ →</a>
+          </div>
+        </article>
+        <article class="game">
+          <img src="img/icon-sparkline10.jpg" data-i18n-alt="a_g6" alt="スパークライン ゲムダン10出展版のアイコン" width="500" height="500" loading="lazy">
+          <div class="body">
+            <p class="meta">2025.11 ／ PC</p>
+            <h3 data-i18n="g6t">スパークライン ゲムダン10出展版</h3>
+            <div class="tags"><span class="tag" data-i18n="g6a">横スクロールシューティング</span><span class="tag" data-i18n="g6b">約10分</span></div>
+            <p data-i18n="g6p">東京ゲームダンジョン10（2025年11月9日）に出展したバージョン。弾と電線を使い分けて進む横スクロールシューティングです。</p>
+            <p class="by" data-i18n="g6c">WASD：移動 ／ Space：弾 ／ M：電線</p>
+            <a class="play" href="https://unityroom.com/games/sp_gemudan10" target="_blank" rel="noopener" data-i18n="playa">unityroomで遊ぶ →</a>
+          </div>
+        </article>
+        <article class="game">
+          <img src="img/icon-irodori.png" data-i18n-alt="a_g3" alt="彩～イロドリ～のアイコン" width="512" height="512" loading="lazy">
+          <div class="body">
+            <p class="meta" data-i18n="g2m">2025 ／ スマホ対応</p>
+            <h3 data-i18n="g3t">彩～イロドリ～</h3>
+            <div class="tags"><span class="tag" data-i18n="g3a">シューティング</span><span class="tag" data-i18n="g3b">和菓子擬人化</span></div>
+            <p data-i18n="g3p">和菓子たちと力を合わせて、和菓子屋【雪月花堂】を狙う悪の金人間を倒すタップ操作のゲーム。</p>
+            <p class="by" data-i18n="g3c">イラスト：つにゃかん。</p>
+            <a class="play" href="https://unityroom.com/games/kalafl_colabo" target="_blank" rel="noopener" data-i18n="playa">unityroomで遊ぶ →</a>
+          </div>
+        </article>
+        <article class="game">
+          <img src="img/icon-flower.jpg" data-i18n-alt="a_g4" alt="flower of ice ～共鳴～のアイコン" width="512" height="512" loading="lazy">
+          <div class="body">
+            <p class="meta">2025.03 ／ PC</p>
+            <h3 data-i18n="g4t">flower of ice ～共鳴～</h3>
+            <div class="tags"><span class="tag" data-i18n="g4a">ボカロコラボ</span></div>
+            <p data-i18n="g4p">ボカロPざきちちゃんとのコラボで作ったゲーム。2025年3月8日に完成しました。</p>
+            <p class="by" data-i18n="g4c">コラボ：ざきちちゃん</p>
+            <a class="play" href="https://unityroom.com/games/floer_kyoumei" target="_blank" rel="noopener" data-i18n="playa">unityroomで遊ぶ →</a>
+          </div>
+        </article>
+        <article class="game">
+          <img src="img/icon-colorful.jpg" data-i18n-alt="a_g5" alt="カラフルのアイコン" width="512" height="512" loading="lazy">
+          <div class="body">
+            <p class="meta" data-i18n="g5m">2025.01 ／ スマホ対応</p>
+            <h3 data-i18n="g5t">カラフル</h3>
+            <div class="tags"><span class="tag" data-i18n="g5a">カジュアル</span><span class="tag" data-i18n="g5b">チーム ハリザキ</span></div>
+            <p data-i18n="g5p">空飛ぶ猫がハートを集める物語。出会いからわずか1週間で完成した、最初のコラボ作品です。</p>
+            <p class="by" data-i18n="g5c">音楽：ハリボ ／ イラスト・作詞：ザキチ</p>
+            <a class="play" href="https://unityroom.com/games/color_pc" target="_blank" rel="noopener" data-i18n="playa">unityroomで遊ぶ →</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="events">
+    <div class="wrap">
+      <p class="label">EVENTS</p>
+      <h2 data-i18n="e_h">東京ゲームダンジョン出展</h2>
+      <p class="intro" data-i18n="e_in">東京ゲームダンジョンは、東京で約3か月ごとに開かれるインディーゲームの展示会です。</p>
+      <div class="events">
+        <ol class="dungeon" reversed>
+          <li><div class="no">14<small>GAME DUNGEON</small></div><div><div class="d">2026.10.31</div><div class="w" data-i18n="e14">ツインブレイズ（グミシステム搭載版）</div></div></li>
+          <li><div class="no">13<small>GAME DUNGEON</small></div><div><div class="d">2026.08.08</div><div class="w" data-i18n="e13">ツインブレイズ</div></div></li>
+          <li><div class="no">12<small>GAME DUNGEON</small></div><div><div class="d">2026.05.03</div><div class="w" data-i18n="e12">ツインブレイズ（初披露）</div></div></li>
+          <li><div class="no">10<small>GAME DUNGEON</small></div><div><div class="d">2025.11.09</div><div class="w" data-i18n="e10">スパークライン ／ 彩～イロドリ～</div></div></li>
+          <li><div class="no">9<small>GAME DUNGEON</small></div><div><div class="d">2025.08.03</div><div class="w" data-i18n="e9">初出展：スパークライン ／ 彩～イロドリ～</div></div></li>
+        </ol>
+        <div class="photos">
+          <figure class="wide"><img src="img/booth.jpg" data-i18n-alt="a_p1" alt="東京ゲームダンジョンの出展ブース。モニター2台とポスター" loading="lazy"><figcaption data-i18n="cap1">出展ブースの様子</figcaption></figure>
+          <figure class="wide"><img src="img/gd13-display.jpg" data-i18n-alt="a_p2" alt="ツインブレイズのポスターとキャラクターのアクリルスタンド" loading="lazy"><figcaption data-i18n="cap2">ツインブレイズの展示</figcaption></figure>
+          <figure><img src="img/sparkline-poster.jpg" data-i18n-alt="a_p4" alt="スパークラインのポスター" loading="lazy"><figcaption data-i18n="g2t">スパークライン</figcaption></figure>
+          <figure><img src="img/irodori-poster.jpg" data-i18n-alt="a_p5" alt="彩～イロドリ～のポスター" loading="lazy"><figcaption data-i18n="g3t">彩～イロドリ～</figcaption></figure>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="history">
+    <div class="wrap">
+      <p class="label">HISTORY</p>
+      <h2 data-i18n="h_h">これまでの歩み</h2>
+      <ol class="timeline" reversed>
+        <li><div class="d">2026.10.31</div><div class="t" data-i18n="t1">東京ゲームダンジョン14 に『ツインブレイズ』を出展</div><div class="x" data-i18n="t1x">出展版を unityroom で公開</div></li>
+        <li><div class="d">2026.08.08</div><div class="t" data-i18n="t2">東京ゲームダンジョン13 に『ツインブレイズ』を出展</div></li>
+        <li><div class="d">2026.08</div><div class="t" data-i18n="t3">unity1week に『しろ』で参加</div><div class="x" data-i18n="t3x">1週間でゲームを作るイベント</div></li>
+        <li class="key"><div class="d">2026.05.03</div><div class="t" data-i18n="t4">東京ゲームダンジョン12 で『ツインブレイズ』を初披露</div></li>
+        <li class="key"><div class="d">2026.02</div><div class="t" data-i18n="t5">『ツインブレイズ』の開発を開始</div><div class="x" data-i18n="t5x">note で Unity 入門連載「ゼロから始めるUnity！生活」もスタート</div></li>
+        <li><div class="d">2025.12.26</div><div class="t" data-i18n="t12">unity1week に『スパークライン外伝』で参加</div><div class="x" data-i18n="t12x">お題「もうひとつ」。宅録声優みたまさんと1週間で制作</div></li>
+        <li><div class="d">2025.11.09</div><div class="t" data-i18n="t6">東京ゲームダンジョン10 に出展</div><div class="x" data-i18n="t6x">『スパークライン』に AI ボイスを実装して展示</div></li>
+        <li class="key"><div class="d">2025.08.03</div><div class="t" data-i18n="t7">東京ゲームダンジョン9 で初出展</div><div class="x" data-i18n="t7x">缶バッジとアクリルキーホルダーも用意</div></li>
+        <li><div class="d">2025.05.11</div><div class="t" data-i18n="t8">『彩～イロドリ～』を unityroom で公開</div><div class="x" data-i18n="t8x">Threads で出会ったイラストレーター つにゃかん。さんとのコラボ</div></li>
+        <li><div class="d">2025.03.08</div><div class="t" data-i18n="t9">『flower of ice ～共鳴～』が完成</div></li>
+        <li class="key"><div class="d">2025.01.13</div><div class="t" data-i18n="t10">最初のコラボ作品『カラフル』を公開</div><div class="x" data-i18n="t10x">ザキチさん・ハリボさんとチーム「ハリザキ」を結成</div></li>
+        <li><div class="d">2023</div><div class="t" data-i18n="t11">Unity を始める</div><div class="x" data-i18n="t11x">同年11月、レーベル TKUGAMES としてアプリ公開の準備</div></li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="story">
+    <div class="wrap">
+      <p class="label">STORY</p>
+      <h2 data-i18n="s_h">コラボゲーム誕生秘話</h2>
+      <p class="intro" data-i18n="s_in">ある日起きたキセキ。2025年1月6日に、ザキチちゃんと出会いました。</p>
+      <div class="story">
+        <div>
+          <ol class="chat">
+            <li class="n"><span data-i18n="sn1">ある朝、お誕生の日の投稿に『おめでとう』のコメントを返す</span></li>
+            <li class="t think"><span class="who" data-i18n="sw_t">プログラマー “T”</span><span class="say" data-i18n="st1">誰かゲーム遊んで<br>感想もらえないかな～</span></li>
+            <li class="z"><span class="who" data-i18n="sw_z">ザキチ</span><span class="say" data-i18n="sz1">今日は ハリザキのお誕生日です！...</span></li>
+            <li class="t"><span class="who" data-i18n="sw_t">プログラマー “T”</span><span class="say" data-i18n="st2">お誕生日おめでとうございます！<br>作ったゲームをプレゼントします。<br>あそんでね！</span></li>
+            <li class="z"><span class="who" data-i18n="sw_z">ザキチ</span><span class="say" data-i18n="sz2">ありがとうございます！<br>ゲーム遊んでみました！<br>楽しかったです♪</span></li>
+            <li class="t"><span class="who" data-i18n="sw_t">プログラマー “T”</span><span class="say" data-i18n="st3">コラボやってみませんか？<br>イラスト描いて頂ければ<br>ゲームにします</span></li>
+            <li class="z"><span class="who" data-i18n="sw_z">ザキチ</span><span class="say" data-i18n="sz3">？、いいですよ！</span></li>
+            <li class="n"><span data-i18n="sn2">・・・1週間後、コラボゲーム完成！！</span></li>
+            <li class="z"><span class="who" data-i18n="sw_z">ザキチ</span><span class="say" data-i18n="sz4">ハリボにも言っておきますね♪</span></li>
+            <li class="t"><span class="who" data-i18n="sw_t">プログラマー “T”</span><span class="say" data-i18n="st4">えっハリボ？ グミ？ キャラ？<br>そういえば、、、<br>ボカロPってなんだろう？謎</span></li>
+            <li class="end"><span class="say" data-i18n="send">ボカロPの『P』は、プロデューサーの『P』<br>かっけー！<br>そうだ、我が名を『コンセプトゲームP』にしよう！</span></li>
+          </ol>
+          <p class="source" data-i18n="s_src">公式サイト <a href="https://tetsuka1975.wixsite.com/unityaction" target="_blank" rel="noopener">Unityaction</a> の「コラボゲーム誕生秘話」より引用</p>
+        </div>
+        <aside>
+          <img src="img/icon-colorful.jpg" data-i18n-alt="a_g5" alt="カラフルのアイコン" width="512" height="512" loading="lazy">
+          <div class="d">2025.01.13</div>
+          <div data-i18n="s_a1">コラボゲーム『カラフル』完成！スマホで遊べるゲームとして unityroom で公開。ボカロ曲とともに、いざ出陣！</div>
+          <div data-i18n="s_a2">ハリボさんが曲を作り、ザキチちゃんがイラストとボカロで歌詞をのせて YouTube で公開中。</div>
+          <div class="eq" data-i18n="s_a3">ハリボ ＋ ザキチ ＝ ハリザキ<br>（1月6日誕生日）</div>
+          <a class="play" href="https://unityroom.com/games/color_pc" target="_blank" rel="noopener" data-i18n="playa" style="color: var(--frost); font-weight: 700; text-decoration: none;">unityroomで遊ぶ →</a>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section id="team">
+    <div class="wrap">
+      <p class="label">COLLABORATORS</p>
+      <h2 data-i18n="m_h">一緒に作っている仲間</h2>
+      <ul class="team">
+        <li><b data-i18n="m1">ザキチ</b><span data-i18n="m1r">ボカロP・イラスト・作詞</span></li>
+        <li><b data-i18n="m2">ハリボ</b><span data-i18n="m2r">音楽</span></li>
+        <li><b data-i18n="m3">つにゃかん。</b><span data-i18n="m3r">イラスト</span></li>
+        <li><b data-i18n="m4">みたま</b><span data-i18n="m4r">ボイス（ツインブレイズ）</span></li>
+        <li><b data-i18n="m5">葉音（はのん）</b><span data-i18n="m4r">ボイス（ツインブレイズ）</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="links">
+    <div class="wrap">
+      <p class="label">LINKS</p>
+      <h2 data-i18n="l_h">リンク</h2>
+      <ul class="links">
+        <li><a href="https://x.com/tetsu1104u" target="_blank" rel="noopener"><b>X</b><span>@tetsu1104u</span></a></li>
+        <li><a href="https://note.com/tetsu1104u" target="_blank" rel="noopener"><b>note</b><span data-i18n="l2">開発記録・Unity入門</span></a></li>
+        <li><a href="https://www.youtube.com/@TKUGAMES" target="_blank" rel="noopener"><b>YouTube</b><span>@TKUGAMES</span></a></li>
+        <li><a href="https://www.instagram.com/tetsuka197/" target="_blank" rel="noopener"><b>Instagram</b><span>@tetsuka197</span></a></li>
+        <li><a href="https://unityroom.com/games/twinblaze" target="_blank" rel="noopener"><b>unityroom</b><span data-i18n="l5">ゲームを遊ぶ</span></a></li>
+        <li><a href="https://tetsuka1975.wixsite.com/unityaction" target="_blank" rel="noopener"><b>Unityaction</b><span data-i18n="l6">公式サイト（Wix）</span></a></li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<section class="counters" aria-label="Visitors">
+  <div class="wrap">
+    <div class="counter total"><b data-i18n="cnt1">累計の来場者</b><output id="cnt-total">…</output></div>
+    <div class="counter today"><b data-i18n="cnt2">今日の来場者</b><output id="cnt-today">…</output></div>
+    <p class="note" data-i18n="cntn">数は数時間おくれて反映されます（GoatCounter で集計）</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span data-i18n="foot">© 2026 TKUGAMES ／ TKUコンセプトゲームP</span>
+    <span>Made with Unity</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var EN = {
+    home: "TKU Concept Game P — back to top",
+    nav1: "Profile", nav2: "Games", nav3: "Events", nav4: "History", nav5: "Links",
+    h1: "Twin Blaze", h1sub: "ツインブレイズ",
+    lead: "A fast, feel-good action game where two girls back each other up and race all the way to the ending. Development started in February 2026, and it has been shown at Tokyo Game Dungeon 12, 13 and 14.",
+    c1: "Zakichi", c2: "Haribo", c3: "Mitama / Hanon", c4: "the Vocaloid song “Resonance ~Kyomei~”",
+    play: "Play free on unityroom", more: "See my other games",
+    badge: "PC / Made with Unity",
+    p_h: "TKU Concept Game P",
+    p1: "I’m a solo game developer from Japan who builds and produces games in Unity, now in my fourth year with the engine. My free games are on unityroom, a Japanese browser-game site, so you can play them right in your browser. Most are made for PC, and some also run on smartphones.",
+    p2: "I write all the code myself and team up with Vocaloid producers and illustrators for the art, music and voices. The “P” in my name comes from the “P” (producer) that Vocaloid creators use. “TK” are my initials, and “U” stands for Unity.",
+    p3: "Since my first booth at Tokyo Game Dungeon 9 in August 2025, I’ve exhibited at almost every edition. I post dev logs on note and daily progress on X, mostly in Japanese, but English replies are always welcome.",
+    f1k: "Tools", f2k: "Genres", f2v: "2D action, tower defense, casual",
+    f3k: "Label", f4k: "X followers", f4v: "3,100 (Jan 2026)",
+    g_h: "Games", g_in: "All free on unityroom. They run in your browser, no download needed. In-game text is in Japanese.",
+    g0t: "Twin Blaze — Tokyo Game Dungeon 14 Edition", g0a: "Latest", g0b: "About 15 min",
+    g0p: "The version shown at Tokyo Game Dungeon 14. You can clear it in about 15 minutes, but the “Friendship Gummy” system along the way might eat up your time.",
+    g0c: "A/D: move / Space: jump / M: attack / Left Shift: switch character (gamepad supported)",
+    a_g0: "Twin Blaze Tokyo Game Dungeon 14 Edition icon: a bag of Friendship Gummies and a fairy girl",
+    g6t: "Sparkline — Tokyo Game Dungeon 10 Edition", g6a: "Side-scrolling shooter", g6b: "About 10 min",
+    g6p: "The version shown at Tokyo Game Dungeon 10 on November 9, 2025. A side-scrolling shooter where you switch between shots and power lines.",
+    g6c: "WASD: move / Space: shoot / M: power line",
+    a_g6: "Sparkline Tokyo Game Dungeon 10 Edition icon",
+    g7t: "Twin Blaze — Tokyo Game Dungeon 13 Edition",
+    g7p: "The version shown at Tokyo Game Dungeon 13 on August 8, 2026. You can clear it in about 15 minutes.",
+    g7c: "A/D: move / Space: jump / M: attack / Left Shift: switch character (gamepad supported)",
+    a_g7: "Twin Blaze Tokyo Game Dungeon 13 Edition icon",
+    g8t: "Sparkline Gaiden", g8a: "unity1week",
+    g8p: "My entry for the Unity 1-Week Game Jam (theme: “One More”). I wrote my first-ever game design doc and built this hardcore side-scrolling shooter in one week with home-studio voice actor Mitama.",
+    g8c: "WASD: move / Space or left click: attack / M: power line",
+    a_g8: "Sparkline Gaiden icon: girls riding a dragon facing a giant wreathed in blue flames",
+    t12: "Joined unity1week with “Sparkline Gaiden”", t12x: "Theme: “One More”. Made in one week with voice actor Mitama",
+    s_h: "How My First Collab Began",
+    s_in: "A small miracle: on January 6, 2025, I met Zakichi.",
+    sn1: "One morning, I left a “congratulations” comment on a birthday post",
+    sw_t: "Programmer “T”", sw_z: "Zakichi",
+    st1: "(I wish someone would play my game<br>and tell me what they think…)",
+    sz1: "Today is Harizaki’s birthday!…",
+    st2: "Happy birthday!<br>Here’s a game I made, as a present.<br>Have fun!",
+    sz2: "Thank you!<br>I played your game!<br>It was fun ♪",
+    st3: "Want to try a collab?<br>If you draw the illustrations,<br>I’ll turn them into a game.",
+    sz3: "? Sure!",
+    sn2: "…One week later, our collab game was finished!!",
+    sz4: "I’ll tell Haribo too ♪",
+    st4: "Huh, Haribo? Like the gummies? A character?<br>Come to think of it…<br>what even is a “Vocaloid P”? A mystery.",
+    send: "The “P” in Vocaloid P stands for “Producer.”<br>So cool!<br>That’s it, I’ll call myself “Concept Game P”!",
+    s_src: "Translated from “The Secret Story Behind Our Collab Game” on my official site, <a href=\"https://tetsuka1975.wixsite.com/unityaction\" target=\"_blank\" rel=\"noopener\">Unityaction</a> (Japanese)",
+    s_a1: "January 13, 2025: our collab game, Colorful, was done! Released on unityroom and playable on smartphones, launched together with a Vocaloid song.",
+    s_a2: "Haribo wrote the music, and Zakichi added illustrations and Vocaloid-sung lyrics. The song is on YouTube.",
+    s_a3: "Haribo + Zakichi = Harizaki<br>(birthday: January 6)",
+    g1t: "Twin Blaze", g1a: "In development", g1b: "2D action",
+    g1p: "Two fates, now resonating. Two girls help each other blaze through to the end.",
+    g1c: "Characters: Zakichi / Music: Haribo", playa: "Play on unityroom →",
+    g2m: "2025 / Mobile-friendly", g2t: "Sparkline", g2a: "Tower defense", g2b: "AI voices",
+    g2p: "Draw power lines to guide Denki-kun safely home. A one-of-a-kind tower defense anyone can pick up.",
+    g2c: "Art: Zakichi-chan, Tsunyakan.",
+    g3t: "Irodori", g3a: "Shooter", g3b: "Japanese sweets characters",
+    g3p: "Join forces with personified wagashi (Japanese sweets) to stop the villain threatening the sweet shop Setsugekka-do. Played with simple taps.",
+    g3c: "Art: Tsunyakan.",
+    g4t: "flower of ice ~Kyomei~", g4a: "Vocaloid collab",
+    g4p: "A game made with Vocaloid producer Zakichi-chan, completed on March 8, 2025.",
+    g4c: "Collab: Zakichi-chan",
+    g5m: "2025.01 / Mobile-friendly", g5t: "Colorful", g5a: "Casual", g5b: "Team Harizaki",
+    g5p: "A flying cat collects hearts on its journey. My first collaboration, finished just one week after the team met.",
+    g5c: "Music: Haribo / Art & lyrics: Zakichi",
+    e_h: "Tokyo Game Dungeon", e_in: "Tokyo Game Dungeon is an indie game expo held in Tokyo about every three months. Here are the editions where I had a booth.",
+    e14: "Twin Blaze (with the Gummy system)", e13: "Twin Blaze", e12: "Twin Blaze (debut)", e10: "Sparkline / Irodori", e9: "First booth: Sparkline / Irodori",
+    cap1: "My booth", cap2: "Twin Blaze display", cap3: "Acrylic keychains",
+    h_h: "Milestones",
+    t1: "Showed Twin Blaze at Tokyo Game Dungeon 14", t1x: "Released the expo version on unityroom",
+    t2: "Showed Twin Blaze at Tokyo Game Dungeon 13",
+    t3: "Joined unity1week with “Shiro”", t3x: "A game jam where you make a game in one week",
+    t4: "Debuted Twin Blaze at Tokyo Game Dungeon 12",
+    t5: "Started developing Twin Blaze", t5x: "Also launched “Unity Life from Zero”, a beginner Unity series on note",
+    t6: "Exhibited at Tokyo Game Dungeon 10", t6x: "Showed Sparkline with newly added AI voices",
+    t7: "First booth at Tokyo Game Dungeon 9", t7x: "Also made can badges and acrylic keychains",
+    t8: "Released Irodori on unityroom", t8x: "A collaboration with illustrator Tsunyakan., whom I met on Threads",
+    t9: "Completed flower of ice ~Kyomei~",
+    t10: "Released my first collaboration, Colorful", t10x: "Formed team “Harizaki” with Zakichi and Haribo",
+    t11: "Started using Unity", t11x: "That November, set up the TKUGAMES label to publish apps",
+    m_h: "Collaborators",
+    m1: "Zakichi", m1r: "Vocaloid producer, illustration, lyrics",
+    m2: "Haribo", m2r: "Music",
+    m3: "Tsunyakan.", m3r: "Illustration",
+    m4: "Mitama", m4r: "Voice (Twin Blaze)",
+    m5: "Hanon",
+    l_h: "Links", l2: "Dev logs & Unity tutorials (Japanese)", l5: "Play my games", l6: "Official site (Wix, Japanese)",
+    foot: "© 2026 TKUGAMES / TKU Concept Game P",
+    cnt1: "Total visitors", cnt2: "Visitors today", cntn: "Counts update with a delay of a few hours (powered by GoatCounter)",
+    a_key: "Twin Blaze key art: a red-haired girl wreathed in flames, with the game logo",
+    a_avatar: "TKU Concept Game P logo character",
+    a_g1: "Twin Blaze icon", a_g2: "Sparkline icon", a_g3: "Irodori icon", a_g4: "flower of ice ~Kyomei~ icon", a_g5: "Colorful icon",
+    a_p1: "My Tokyo Game Dungeon booth with two monitors and posters",
+    a_p2: "Twin Blaze poster and character acrylic stands",
+    a_p3: "Character acrylic keychain",
+    a_p4: "Sparkline poster", a_p5: "Irodori poster"
+  };
+
+  var JA = {};
+  var texts = document.querySelectorAll("[data-i18n]");
+  var alts = document.querySelectorAll("[data-i18n-alt]");
+  var labels = document.querySelectorAll("[data-i18n-label]");
+  texts.forEach(function (el) { JA[el.getAttribute("data-i18n")] = el.innerHTML; });
+  alts.forEach(function (el) { JA[el.getAttribute("data-i18n-alt")] = el.getAttribute("alt"); });
+  labels.forEach(function (el) { JA[el.getAttribute("data-i18n-label")] = el.getAttribute("aria-label"); });
+
+  function apply(lang) {
+    var dict = lang === "en" ? EN : JA;
+    texts.forEach(function (el) { var k = el.getAttribute("data-i18n"); if (dict[k] != null) el.innerHTML = dict[k]; });
+    alts.forEach(function (el) { var k = el.getAttribute("data-i18n-alt"); if (dict[k] != null) el.setAttribute("alt", dict[k]); });
+    labels.forEach(function (el) { var k = el.getAttribute("data-i18n-label"); if (dict[k] != null) el.setAttribute("aria-label", dict[k]); });
+    document.documentElement.lang = lang;
+    document.querySelectorAll(".lang button").forEach(function (b) {
+      b.setAttribute("aria-pressed", String(b.getAttribute("data-lang") === lang));
+    });
+    try { localStorage.setItem("tku-lang", lang); } catch (e) {}
+  }
+
+  function initialLang() {
+    var h = location.hash.replace("#", "");
+    if (h === "en" || h === "ja") return h;
+    try { var s = localStorage.getItem("tku-lang"); if (s === "en" || s === "ja") return s; } catch (e) {}
+    var nav = (navigator.language || "ja").toLowerCase();
+    return nav.indexOf("ja") === 0 ? "ja" : "en";
+  }
+
+  document.querySelectorAll(".lang button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var lang = b.getAttribute("data-lang");
+      apply(lang);
+      if (location.hash !== "#" + lang) location.hash = lang;
+    });
+  });
+
+  window.addEventListener("hashchange", function () {
+    var h = location.hash.replace("#", "");
+    if (h === "en" || h === "ja") apply(h);
+  });
+
+  /* ページ内リンクは言語のハッシュを残したままスクロールする */
+  document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+    a.addEventListener("click", function (ev) {
+      var id = a.getAttribute("href").slice(1);
+      var target = document.getElementById(id);
+      if (!target) return;
+      ev.preventDefault();
+      target.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    });
+  });
+
+  apply(initialLang());
+})();
+</script>
+<script>
+/* 来場者カウンター（GoatCounter）: 累計と、日本時間の今日の分 */
+(function () {
+  var base = "https://tkugames.goatcounter.com/counter/TOTAL.json";
+  var today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  function load(url, id) {
+    var el = document.getElementById(id);
+    fetch(url, { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function (j) { el.textContent = String(j.count != null ? j.count : "0"); })
+      .catch(function () { el.textContent = "—"; });
+  }
+  load(base, "cnt-total");
+  load(base + "?start=" + today + "&end=" + today, "cnt-today");
+})();
+</script>
+<script data-goatcounter="https://tkugames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+
+</html>
