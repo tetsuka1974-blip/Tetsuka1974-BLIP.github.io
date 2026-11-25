@@ -73,6 +73,17 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 }
 .lang button[aria-pressed="true"] { background: var(--frost); color: var(--night); }
 
+/* top video */
+.pv { padding-block: 24px 8px; }
+.pv .frame {
+  position: relative; width: 100%; max-width: 960px; margin: 0 auto; aspect-ratio: 16 / 9;
+  border-radius: 16px; overflow: hidden; background: #000;
+  border: 1px solid var(--line);
+  box-shadow: 0 20px 50px -24px color-mix(in srgb, var(--frost) 55%, transparent), 0 20px 50px -24px color-mix(in srgb, var(--flame) 55%, transparent);
+}
+.pv iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.pv .cap { max-width: 960px; margin: 10px auto 0; font-size: 13px; color: var(--muted); }
+
 /* hero */
 .hero { position: relative; overflow: hidden; }
 .hero::before {
@@ -250,6 +261,16 @@ footer .wrap { display: flex; justify-content: space-between; gap: 12px; flex-wr
 </header>
 
 <main id="top">
+  <section class="pv" aria-label="Twin Blaze PV" style="border-top: 0;">
+    <div class="wrap">
+      <div class="frame">
+        <iframe src="https://www.youtube-nocookie.com/embed/Z8oKhc-bhFY?rel=0" title="ツインブレイズ＿PV＿フルバージョン" loading="lazy"
+          allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+      </div>
+      <p class="cap" data-i18n="pvcap">ツインブレイズ PV（フルバージョン）｜YouTube チャンネル @TKUGAMES</p>
+    </div>
+  </section>
+
   <div class="hero">
     <div class="wrap">
       <div class="copy">
@@ -607,6 +628,7 @@ footer .wrap { display: flex; justify-content: space-between; gap: 12px; flex-wr
     m5: "Hanon",
     l_h: "Links", l2: "Dev logs & Unity tutorials (Japanese)", l5: "Play my games", l6: "Official site (Wix, Japanese)",
     foot: "© 2026 TKUGAMES / TKU Concept Game P",
+    pvcap: "Twin Blaze PV (full version) | YouTube channel @TKUGAMES",
     cnt1: "Total visitors", cnt2: "Visitors today", cntn: "Counts update with a delay of a few hours (powered by GoatCounter)",
     a_key: "Twin Blaze key art: a red-haired girl wreathed in flames, with the game logo",
     a_avatar: "TKU Concept Game P logo character",
