@@ -707,8 +707,11 @@ footer .wrap { display: flex; justify-content: space-between; gap: 12px; flex-wr
       .then(function (j) { el.textContent = String(j.count != null ? j.count : "0"); })
       .catch(function () { el.textContent = "—"; });
   }
+  // GoatCounter の end はその日を含まないので、終わりは「明日」を指定する
+  var t = new Date(today + "T00:00:00Z"); t.setUTCDate(t.getUTCDate() + 1);
+  var tomorrow = t.toISOString().slice(0, 10);
   load(base, "cnt-total");
-  load(base + "?start=" + today + "&end=" + today, "cnt-today");
+  load(base + "?start=" + today + "&end=" + tomorrow, "cnt-today");
 })();
 </script>
 <script data-goatcounter="https://tkugames.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
