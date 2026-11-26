@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>来場者の分析 | TKUコンセプトゲームP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* ホームページと同じ深い青の配色。自分だけが見る分析用（ホームページからはリンクしない・来場者として数えない） */
+:root {
+  --bg: #0b1d3f;
+  --panel: #102a52;
+  --line: #1f4a7a;
+  --grid: #1a3f69;
+  --ink: #f3f8ff;
+  --ink2: #c9dbef;
+  --muted: #a3c3e0;
+  --s1: #5cc8ff;   /* 系列1（今週・来場者） */
+  --s2: #8a9bb8;   /* 系列2（先週・比較用、点線） */
+  --up: #5fd39a;
+  --down: #ff8f7a;
+  --body: "Zen Kaku Gothic New", "Yu Gothic", "Meiryo", sans-serif;
+  --dot: "DotGothic16", "MS Gothic", monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: linear-gradient(180deg, #11406e 0%, #0b2a52 35%, #0a1d40 70%, #081430 100%) fixed, var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.7; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 28px max(16px, env(safe-area-inset-right, 0px)) 48px max(16px, env(safe-area-inset-left, 0px)); }
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; margin-bottom: 20px; }
+h1 { margin: 0; font-size: 28px; line-height: 1.3; }
+.sub { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+button { font: 700 14px var(--body); color: var(--bg); background: var(--s1); border: 0; border-radius: 999px; padding: 9px 18px; cursor: pointer; }
+button:focus-visible, summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+button[disabled] { opacity: .6; cursor: default; }
+.status { margin: 0 0 16px; font-size: 13px; color: var(--muted); min-height: 1.7em; }
+.status.err { color: var(--down); }
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.tile { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; min-width: 0; }
+.tile b { display: block; font: 400 13px var(--dot); color: var(--muted); letter-spacing: .05em; }
+.tile .v { font-size: 32px; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.tile .d { font-size: 12px; color: var(--muted); }
+.tile .d .up { color: var(--up); } .tile .d .down { color: var(--down); }
+
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px 18px 10px; margin-bottom: 18px; min-width: 0; }
+.card h2 { margin: 0; font-size: 17px; }
+.card .note { margin: 2px 0 8px; font-size: 13px; color: var(--muted); }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--ink2); margin-bottom: 4px; }
+.legend i { display: inline-block; width: 18px; height: 0; border-top: 2px solid; vertical-align: middle; margin-right: 6px; }
+.chart { position: relative; width: 100%; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 760px) { .two { grid-template-columns: 1fr; } }
+
+.tip { position: absolute; pointer-events: none; background: #06132c; border: 1px solid var(--line); color: var(--ink); border-radius: 8px; padding: 6px 10px; font-size: 13px; line-height: 1.5; white-space: nowrap; transform: translate(-50%, -100%); margin-top: -10px; box-shadow: 0 6px 18px rgba(0,0,0,.4); }
+.tip[hidden] { display: none; }
+.tip b { font-variant-numeric: tabular-nums; }
+
+details { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 14px 18px; }
+summary { cursor: pointer; font-weight: 700; }
+.tablewrap { overflow-x: auto; margin-top: 10px; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: 14px; }
+th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--grid); }
+td.n, th.n { text-align: right; }
+footer { margin-top: 24px; font-size: 12px; color: var(--muted); }
+footer a { color: var(--ink2); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>来場者の分析</h1>
+      <p class="sub">tetsuka1974-blip.github.io ／ 日付は日本時間 ／ 数字は GoatCounter 集計で最大4時間おくれて反映</p>
+    </div>
+    <button type="button" id="reload">最新にする</button>
+  </header>
+  <p class="status" id="status" role="status">読み込み中…</p>
+
+  <section class="tiles" aria-label="主な数字">
+    <div class="tile"><b>累計</b><div class="v" id="t-total">—</div><div class="d" id="t-total-d">公開日から</div></div>
+    <div class="tile"><b>今日</b><div class="v" id="t-today">—</div><div class="d" id="t-today-d"></div></div>
+    <div class="tile"><b>昨日</b><div class="v" id="t-yday">—</div><div class="d" id="t-yday-d"></div></div>
+    <div class="tile"><b>直近7日</b><div class="v" id="t-7">—</div><div class="d" id="t-7-d"></div></div>
+    <div class="tile"><b>直近30日</b><div class="v" id="t-30">—</div><div class="d" id="t-30-d"></div></div>
+    <div class="tile"><b>1日平均</b><div class="v" id="t-avg">—</div><div class="d">公開日から今日まで</div></div>
+    <div class="tile"><b>いちばん多かった日</b><div class="v" id="t-max">—</div><div class="d" id="t-max-d"></div></div>
+  </section>
+
+  <section class="card">
+    <h2>日別の来場者数</h2>
+    <p class="note" id="daily-note">公開日から今日まで（最大60日）</p>
+    <div class="chart" id="c-daily"></div>
+  </section>
+
+  <div class="two">
+    <section class="card">
+      <h2>直近7日とその前の7日</h2>
+      <p class="note">同じ曜日どうしで比べた日別の人数</p>
+      <div class="legend"><span><i style="border-color: var(--s1)"></i>直近7日</span><span><i style="border-color: var(--s2); border-top-style: dashed"></i>その前の7日</span></div>
+      <div class="chart" id="c-week"></div>
+    </section>
+    <section class="card">
+      <h2>曜日別の平均</h2>
+      <p class="note">公開日からの各曜日の1日あたり平均</p>
+      <div class="chart" id="c-dow"></div>
+    </section>
+  </div>
+
+  <details>
+    <summary>日別の数字（表）</summary>
+    <div class="tablewrap"><table><thead><tr><th>日付</th><th>曜日</th><th class="n">来場者</th></tr></thead><tbody id="tbl"></tbody></table></div>
+  </details>
+
+  <footer>くわしい内訳（どこから来たか・どのページか）は <a href="https://tkugames.goatcounter.com" target="_blank" rel="noopener">GoatCounter の管理画面</a>（ログインが必要）で見られます。このページはホームページからはリンクしていません。</footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var BASE = "https://tkugames.goatcounter.com/counter/TOTAL.json";
+  var LAUNCH = "2026-11-25";            // 公開日
+  var MAX_DAYS = 60;                    // グラフに出す最大日数
+  var WD = ["日", "月", "火", "水", "木", "金", "土"];
+  var css = getComputedStyle(document.documentElement);
+  function v(n) { return css.getPropertyValue(n).trim(); }
+
+  // ---- 日付（日本時間の日付を "YYYY-MM-DD" で扱う） ----
+  function tokyoToday() { return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date()); }
+  function addDays(s, n) { var d = new Date(s + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+  function dow(s) { return new Date(s + "T00:00:00Z").getUTCDay(); }
+  function md(s) { return Number(s.slice(5, 7)) + "/" + Number(s.slice(8, 10)); }
+  function daysBetween(a, b) { return Math.round((new Date(b + "T00:00:00Z") - new Date(a + "T00:00:00Z")) / 86400000); }
+  function fmt(n) { return n == null ? "—" : n.toLocaleString("ja-JP"); }
+
+  // ---- GoatCounter（end の日は含まれないので、1日分は start=d, end=d+1） ----
+  function count(start, end) {
+    var url = BASE + (start ? "?start=" + start + "&end=" + end : "");
+    return fetch(url, { cache: "no-store" }).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    }).then(function (j) { return Number(String(j.count).replace(/[^0-9]/g, "")) || 0; });
+  }
+  function pool(tasks, limit) {
+    var i = 0, out = new Array(tasks.length);
+    function next() { if (i >= tasks.length) return Promise.resolve(); var k = i++; return tasks[k]().then(function (r) { out[k] = r; return next(); }); }
+    var runners = []; for (var n = 0; n < Math.min(limit, tasks.length); n++) runners.push(next());
+    return Promise.all(runners).then(function () { return out; });
+  }
+
+  // ---- SVG の部品 ----
+  var NS = "http://www.w3.org/2000/svg";
+  function el(name, attrs, parent) { var e = document.createElementNS(NS, name); for (var k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+  // 目盛りは4本・整数のきりのよい間隔（人数なので小数にしない）
+  function niceMax(m) {
+    var raw = Math.max(1, m / 4), p = Math.pow(10, Math.floor(Math.log10(raw))), s = [1, 2, 5, 10], step = 10 * p;
+    for (var i = 0; i < s.length; i++) if (s[i] * p >= raw) { step = s[i] * p; break; }
+    return Math.max(1, Math.ceil(step)) * 4;
+  }
+  function frame(host, W, H, M, yMax) {
+    host.innerHTML = "";
+    var svg = el("svg", { viewBox: "0 0 " + W + " " + H, role: "img" }, host);
+    var ticks = 4, ph = H - M.t - M.b;
+    for (var i = 0; i <= ticks; i++) {
+      var val = yMax * i / ticks, y = M.t + ph - ph * i / ticks;
+      el("line", { x1: M.l, x2: W - M.r, y1: y, y2: y, stroke: v("--grid"), "stroke-width": 1 }, svg);
+      var t = el("text", { x: M.l - 8, y: y + 4, "text-anchor": "end", fill: v("--muted"), "font-size": 12 }, svg);
+      t.textContent = Number.isInteger(val) ? val : val.toFixed(1);
+    }
+    var tip = document.createElement("div"); tip.className = "tip"; tip.hidden = true; host.appendChild(tip);
+    return { svg: svg, tip: tip, ph: ph };
+  }
+  function showTip(host, tip, svg, x, y, html) {
+    var r = svg.getBoundingClientRect(), hr = host.getBoundingClientRect(), vb = svg.viewBox.baseVal;
+    tip.innerHTML = html; tip.hidden = false;
+    tip.style.left = (r.left - hr.left + x * r.width / vb.width) + "px";
+    tip.style.top = (r.top - hr.top + y * r.height / vb.height) + "px";
+  }
+  // 上の角だけ4px丸めた棒（下は基準線にぴったり）
+  function barPath(x, y, w, h) {
+    if (h <= 0) return "";
+    var r = Math.min(4, w / 2, h);
+    return "M" + x + "," + (y + h) + "V" + (y + r) + "Q" + x + "," + y + " " + (x + r) + "," + y + "H" + (x + w - r) + "Q" + (x + w) + "," + y + " " + (x + w) + "," + (y + r) + "V" + (y + h) + "Z";
+  }
+
+  function barChart(host, items, opts) {
+    var W = opts.w || 720, H = opts.h || 260, M = { t: 14, r: 12, b: 30, l: 44 };
+    var max = 0; items.forEach(function (d) { if (d.v != null && d.v > max) max = d.v; });
+    var yMax = niceMax(Math.max(max, 1));
+    var f = frame(host, W, H, M, yMax), svg = f.svg;
+    var pw = W - M.l - M.r, step = pw / items.length, gap = Math.min(8, step * 0.25), bw = Math.min(56, Math.max(2, step - gap));
+    gap = step - bw; // 棒が細くなった分は左右の余白に回す
+    var labelEvery = Math.max(1, Math.ceil(items.length / (opts.maxLabels || 12)));
+    items.forEach(function (d, i) {
+      var x = M.l + i * step + gap / 2, h = d.v == null ? 0 : f.ph * d.v / yMax, y = M.t + f.ph - h;
+      if (d.v != null && h > 0) el("path", { d: barPath(x, y, bw, h), fill: d.hl ? v("--s1") : v("--s1"), opacity: d.hl ? 1 : 0.85 }, svg);
+      if (i % labelEvery === 0 || i === items.length - 1) { var t = el("text", { x: x + bw / 2, y: H - 10, "text-anchor": "middle", fill: v("--muted"), "font-size": 12 }, svg); t.textContent = d.label; }
+      // 当たり判定は棒より広く
+      var hit = el("rect", { x: M.l + i * step, y: M.t, width: step, height: f.ph, fill: "transparent", tabindex: 0 }, svg);
+      function on() { showTip(host, f.tip, svg, x + bw / 2, y, d.tip); }
+      hit.addEventListener("mouseenter", on); hit.addEventListener("focus", on);
+      hit.addEventListener("mouseleave", function () { f.tip.hidden = true; }); hit.addEventListener("blur", function () { f.tip.hidden = true; });
+    });
+    el("line", { x1: M.l, x2: W - M.r, y1: M.t + f.ph, y2: M.t + f.ph, stroke: v("--muted"), "stroke-width": 1 }, svg);
+  }
+
+  function weekChart(host, labels, cur, prev, tips) {
+    var W = 480, H = 280, M = { t: 14, r: 62, b: 30, l: 40 };
+    var max = 0; cur.concat(prev).forEach(function (x) { if (x != null && x > max) max = x; });
+    var yMax = niceMax(Math.max(max, 1));
+    var f = frame(host, W, H, M, yMax), svg = f.svg;
+    var pw = W - M.l - M.r, n = labels.length;
+    function X(i) { return M.l + pw * i / (n - 1); }
+    function Y(val) { return M.t + f.ph - f.ph * val / yMax; }
+    labels.forEach(function (lb, i) { var t = el("text", { x: X(i), y: H - 10, "text-anchor": "middle", fill: v("--muted"), "font-size": 12 }, svg); t.textContent = lb.split(" ")[1]; });
+    el("line", { x1: M.l, x2: W - M.r, y1: M.t + f.ph, y2: M.t + f.ph, stroke: v("--muted"), "stroke-width": 1 }, svg);
+    function series(vals, color, dash, name) {
+      var d = "", last = null;
+      vals.forEach(function (val, i) { if (val == null) return; d += (d && last === i - 1 ? "L" : "M") + X(i) + "," + Y(val); last = i; });
+      if (d) el("path", { d: d, fill: "none", stroke: color, "stroke-width": 2, "stroke-dasharray": dash || "none", "stroke-linejoin": "round", "stroke-linecap": "round" }, svg);
+      vals.forEach(function (val, i) { if (val != null) el("circle", { cx: X(i), cy: Y(val), r: 4, fill: color, stroke: v("--panel"), "stroke-width": 2 }, svg); });
+      // 終点に名前（直接ラベル）
+      for (var k = vals.length - 1; k >= 0; k--) if (vals[k] != null) { var t = el("text", { x: X(k) + 8, y: Y(vals[k]) + 4, fill: v("--ink2"), "font-size": 12 }, svg); t.textContent = name; break; }
+    }
+    series(prev, v("--s2"), "5 4", "前の7日");
+    series(cur, v("--s1"), null, "直近7日");
+    // ホバー：縦線＋両方の値
+    var cross = el("line", { x1: 0, x2: 0, y1: M.t, y2: M.t + f.ph, stroke: v("--ink2"), "stroke-width": 1, opacity: 0 }, svg);
+    labels.forEach(function (lb, i) {
+      var hit = el("rect", { x: X(i) - pw / (n - 1) / 2, y: M.t, width: pw / (n - 1), height: f.ph, fill: "transparent", tabindex: 0 }, svg);
+      function on() { cross.setAttribute("x1", X(i)); cross.setAttribute("x2", X(i)); cross.setAttribute("opacity", 0.5); showTip(host, f.tip, svg, X(i), M.t + 8, tips[i]); }
+      function off() { cross.setAttribute("opacity", 0); f.tip.hidden = true; }
+      hit.addEventListener("mouseenter", on); hit.addEventListener("focus", on); hit.addEventListener("mouseleave", off); hit.addEventListener("blur", off);
+    });
+  }
+
+  function delta(cur, prev, unit) {
+    if (prev == null) return "";
+    var d = cur - prev; if (d === 0) return "前と同じ";
+    return '<span class="' + (d > 0 ? "up" : "down") + '">' + (d > 0 ? "▲ +" : "▼ ") + fmt(d) + "</span> " + unit;
+  }
+
+  // ---- 読み込み ----
+  var btn = document.getElementById("reload"), status = document.getElementById("status");
+  function load() {
+    btn.disabled = true; status.className = "status"; status.textContent = "GoatCounter から読み込み中…";
+    var today = tokyoToday();
+    var start = LAUNCH;
+    var span = daysBetween(LAUNCH, today) + 1;
+    if (span > MAX_DAYS) start = addDays(today, -(MAX_DAYS - 1));
+    // 比較のため、直近14日も必ず取る
+    var first = daysBetween(start, addDays(today, -13)) < 0 ? addDays(today, -13) : start;
+    var days = []; for (var d = first; d <= today; d = addDays(d, 1)) days.push(d);
+    var tasks = days.map(function (d) { return function () { return d < LAUNCH ? Promise.resolve(null) : count(d, addDays(d, 1)); }; });
+    tasks.push(function () { return count(); });
+    pool(tasks, 6).then(function (res) {
+      var total = res.pop();
+      var byDay = {}; days.forEach(function (d, i) { byDay[d] = res[i]; });
+      var shown = days.filter(function (d) { return d >= start && d >= LAUNCH; });
+      var sum = function (from, to) { var s = 0; for (var x = from; x <= to; x = addDays(x, 1)) s += byDay[x] || 0; return s; };
+      var yday = addDays(today, -1);
+
+      document.getElementById("t-total").textContent = fmt(total);
+      document.getElementById("t-total-d").textContent = LAUNCH.replace(/-/g, "/") + " 公開から";
+      document.getElementById("t-today").textContent = fmt(byDay[today]);
+      document.getElementById("t-today-d").innerHTML = delta(byDay[today], byDay[yday], "昨日比");
+      document.getElementById("t-yday").textContent = fmt(byDay[yday]);
+      document.getElementById("t-yday-d").innerHTML = delta(byDay[yday], byDay[addDays(today, -2)], "前日比");
+      var s7 = sum(addDays(today, -6), today), p7 = addDays(today, -13) >= LAUNCH ? sum(addDays(today, -13), addDays(today, -7)) : null;
+      document.getElementById("t-7").textContent = fmt(s7);
+      document.getElementById("t-7-d").innerHTML = p7 == null ? "比較は公開2週間後から" : delta(s7, p7, "前の7日比");
+      document.getElementById("t-30").textContent = fmt(sum(addDays(today, -29) < LAUNCH ? LAUNCH : addDays(today, -29), today));
+      document.getElementById("t-30-d").textContent = span < 30 ? "公開 " + span + " 日分" : "";
+      document.getElementById("t-avg").textContent = (total / span).toFixed(1);
+      var best = null; shown.forEach(function (d) { if (byDay[d] != null && (best == null || byDay[d] > byDay[best])) best = d; });
+      document.getElementById("t-max").textContent = best ? fmt(byDay[best]) : "—";
+      document.getElementById("t-max-d").textContent = best ? md(best) + "（" + WD[dow(best)] + "）" : "";
+
+      // 日別
+      document.getElementById("daily-note").textContent = md(shown[0]) + " 〜 " + md(today) + "（" + shown.length + "日）";
+      barChart(document.getElementById("c-daily"), shown.map(function (d) {
+        return { label: md(d), v: byDay[d], hl: d === today, tip: md(d) + "（" + WD[dow(d)] + "）<br><b>" + fmt(byDay[d]) + "</b> 人" + (d === today ? "（今日・集計中）" : "") };
+      }), { h: 280, maxLabels: 12 });
+
+      // 直近7日 vs その前の7日
+      var labels = [], cur = [], prev = [], tips = [];
+      for (var i = 6; i >= 0; i--) {
+        var dc = addDays(today, -i), dp = addDays(dc, -7);
+        labels.push(md(dc) + " " + WD[dow(dc)]);
+        cur.push(byDay[dc]); prev.push(dp >= LAUNCH ? byDay[dp] : null);
+        tips.push(WD[dow(dc)] + "曜日<br>直近7日 " + md(dc) + "：<b>" + fmt(byDay[dc]) + "</b> 人<br>前の7日 " + md(dp) + "：<b>" + (dp >= LAUNCH ? fmt(byDay[dp]) : "公開前") + "</b>" + (dp >= LAUNCH ? " 人" : ""));
+      }
+      weekChart(document.getElementById("c-week"), labels, cur, prev, tips);
+
+      // 曜日別平均（公開日から、今日は集計中なので除く）
+      var sums = [0, 0, 0, 0, 0, 0, 0], cnt = [0, 0, 0, 0, 0, 0, 0];
+      shown.forEach(function (d) { if (d < today && byDay[d] != null) { sums[dow(d)] += byDay[d]; cnt[dow(d)]++; } });
+      var order = [1, 2, 3, 4, 5, 6, 0];
+      barChart(document.getElementById("c-dow"), order.map(function (w) {
+        var avg = cnt[w] ? sums[w] / cnt[w] : null;
+        return { label: WD[w], v: avg, tip: WD[w] + "曜日<br>平均 <b>" + (avg == null ? "まだデータなし" : avg.toFixed(1) + "</b> 人（" + cnt[w] + "日分）") };
+      }), { w: 480, h: 280 });
+
+      // 表
+      var tb = document.getElementById("tbl"); tb.innerHTML = "";
+      shown.slice().reverse().forEach(function (d) {
+        var tr = document.createElement("tr");
+        [d.replace(/-/g, "/"), WD[dow(d)], fmt(byDay[d])].forEach(function (txt, k) { var td = document.createElement("td"); td.textContent = txt; if (k === 2) td.className = "n"; tr.appendChild(td); });
+        tb.appendChild(tr);
+      });
+
+      var now = new Intl.DateTimeFormat("ja-JP", { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit" }).format(new Date());
+      status.textContent = now + " に読み込みました（日別の合計と累計は、集計のタイミングで少しずれることがあります）";
+    }).catch(function (e) {
+      status.className = "status err";
+      status.textContent = "GoatCounter から読み込めませんでした（" + e.message + "）。GoatCounter の設定「Allow adding visitor counts on your website」がオンか確認して、もう一度「最新にする」を押してください。";
+    }).then(function () { btn.disabled = false; });
+  }
+  btn.addEventListener("click", load);
+  load();
+})();
+</script>
+</body>
+</html>
