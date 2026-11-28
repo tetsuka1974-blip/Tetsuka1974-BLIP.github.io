@@ -65,6 +65,22 @@ summary { cursor: pointer; font-weight: 700; }
 table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: 14px; }
 th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--grid); }
 td.n, th.n { text-align: right; }
+/* unityroom */
+h2.sec { margin: 36px 0 2px; font-size: 22px; }
+.sec-note { margin: 0 0 8px; font-size: 13px; color: var(--muted); }
+.controls { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin: 4px 0 8px; font-size: 13px; color: var(--ink2); }
+select { font: 500 14px var(--body); color: var(--ink); background: #0b2348; border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; max-width: 100%; }
+select:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.hbars { position: relative; display: grid; gap: 10px; padding: 4px 0 10px; }
+.hb { min-width: 0; border-radius: 6px; outline: none; }
+.hb:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.hb .top { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }
+.hb .top span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink2); }
+.hb .top b { font-variant-numeric: tabular-nums; }
+.hb .track { height: 12px; margin-top: 2px; border-left: 1px solid var(--muted); }
+.hb .bar { height: 100%; background: var(--s1); border-radius: 0 4px 4px 0; min-width: 2px; }
+.hb:hover .bar, .hb:focus .bar { opacity: .85; }
+.empty { padding: 28px 0; text-align: center; color: var(--muted); font-size: 14px; }
 footer { margin-top: 24px; font-size: 12px; color: var(--muted); }
 footer a { color: var(--ink2); }
 </style>
@@ -115,6 +131,40 @@ footer a { color: var(--ink2); }
     <div class="tablewrap"><table><thead><tr><th>日付</th><th>曜日</th><th class="n">来場者</th></tr></thead><tbody id="tbl"></tbody></table></div>
   </details>
 
+  <h2 class="sec">unityroom のゲーム</h2>
+  <p class="sec-note">「閲覧」はゲームのページが開かれた回数で、遊ばれた回数（プレイ数）ではありません。PC の記録の道具が1日1回（ログオン時・12:00）数字を控え、<code>unityroom.json</code> をアップロードするとここに反映されます。</p>
+  <p class="status" id="ur-status" role="status">読み込み中…</p>
+
+  <section class="tiles" aria-label="unityroom の主な数字">
+    <div class="tile"><b>閲覧の合計</b><div class="v" id="u-views">—</div><div class="d" id="u-views-d"></div></div>
+    <div class="tile"><b>前回の記録から</b><div class="v" id="u-inc">—</div><div class="d" id="u-inc-d"></div></div>
+    <div class="tile"><b>評価の合計</b><div class="v" id="u-rate">—</div><div class="d" id="u-rate-d"></div></div>
+    <div class="tile"><b>コメントの合計</b><div class="v" id="u-com">—</div><div class="d" id="u-com-d"></div></div>
+  </section>
+
+  <section class="card">
+    <h2>作品ごとの閲覧数</h2>
+    <p class="note" id="ur-bars-note">いちばん新しい記録</p>
+    <div class="hbars" id="ur-bars"></div>
+  </section>
+
+  <section class="card">
+    <h2>閲覧数の推移</h2>
+    <div class="controls">
+      <label>作品 <select id="ur-game"><option value="">全作品の合計</option></select></label>
+      <label>表示 <select id="ur-mode"><option value="total">閲覧数（それまでの合計）</option><option value="inc">1回の記録で増えた数</option></select></label>
+    </div>
+    <p class="note" id="ur-trend-note"></p>
+    <div class="chart" id="c-ur"></div>
+  </section>
+
+  <details>
+    <summary>unityroom の数字（表）</summary>
+    <div class="tablewrap"><table><thead><tr><th>作品</th><th class="n">閲覧</th><th class="n">前回比</th><th class="n">評価</th><th class="n">コメント</th><th>記録日</th></tr></thead><tbody id="ur-tbl"></tbody></table></div>
+    <p class="note" style="margin-top:14px">これまでの記録（新しい順）</p>
+    <div class="tablewrap"><table><thead><tr><th>日付</th><th>作品</th><th class="n">閲覧</th><th class="n">増加</th><th class="n">評価</th><th class="n">コメント</th></tr></thead><tbody id="ur-hist"></tbody></table></div>
+  </details>
+
   <footer>くわしい内訳（どこから来たか・どのページか）は <a href="https://tkugames.goatcounter.com" target="_blank" rel="noopener">GoatCounter の管理画面</a>（ログインが必要）で見られます。このページはホームページからはリンクしていません。</footer>
 </div>
 
@@ -160,15 +210,16 @@ footer a { color: var(--ink2); }
     for (var i = 0; i < s.length; i++) if (s[i] * p >= raw) { step = s[i] * p; break; }
     return Math.max(1, Math.ceil(step)) * 4;
   }
-  function frame(host, W, H, M, yMax) {
+  function frame(host, W, H, M, yMax, yMin) {
+    yMin = yMin || 0;
     host.innerHTML = "";
     var svg = el("svg", { viewBox: "0 0 " + W + " " + H, role: "img" }, host);
     var ticks = 4, ph = H - M.t - M.b;
     for (var i = 0; i <= ticks; i++) {
-      var val = yMax * i / ticks, y = M.t + ph - ph * i / ticks;
+      var val = yMin + (yMax - yMin) * i / ticks, y = M.t + ph - ph * i / ticks;
       el("line", { x1: M.l, x2: W - M.r, y1: y, y2: y, stroke: v("--grid"), "stroke-width": 1 }, svg);
       var t = el("text", { x: M.l - 8, y: y + 4, "text-anchor": "end", fill: v("--muted"), "font-size": 12 }, svg);
-      t.textContent = Number.isInteger(val) ? val : val.toFixed(1);
+      t.textContent = Number.isInteger(val) ? val.toLocaleString("ja-JP") : val.toFixed(1);
     }
     var tip = document.createElement("div"); tip.className = "tip"; tip.hidden = true; host.appendChild(tip);
     return { svg: svg, tip: tip, ph: ph };
@@ -319,8 +370,155 @@ footer a { color: var(--ink2); }
       status.textContent = "GoatCounter から読み込めませんでした（" + e.message + "）。GoatCounter の設定「Allow adding visitor counts on your website」がオンか確認して、もう一度「最新にする」を押してください。";
     }).then(function () { btn.disabled = false; });
   }
-  btn.addEventListener("click", load);
+  // ======== unityroom（PC の記録の道具が書き出す unityroom.json を読む） ========
+  var urStatus = document.getElementById("ur-status"), urGame = document.getElementById("ur-game"), urMode = document.getElementById("ur-mode");
+  var UR = null; // { games, names, dates, byGame: id -> {date -> row(+inc)} }
+
+  // 下限が0でない目盛り（整数・4本）
+  function niceStep(raw) { var p = Math.pow(10, Math.floor(Math.log10(raw))), s = [1, 2, 5, 10]; for (var i = 0; i < s.length; i++) if (s[i] * p >= raw) return Math.max(1, Math.ceil(s[i] * p)); return Math.max(1, Math.ceil(10 * p)); }
+  function niceRange(lo, hi) {
+    if (hi - lo < 4) { lo = Math.max(0, Math.floor((lo + hi) / 2) - 2); hi = lo + 4; }
+    var raw = (hi - lo) / 4, step, a;
+    do { step = niceStep(raw); a = Math.floor(lo / step) * step; raw = step * 1.01; } while (a + 4 * step < hi);
+    return { lo: a, hi: a + 4 * step };
+  }
+
+  function lineChart(host, pts) {
+    var W = 720, H = 260, M = { t: 16, r: 24, b: 30, l: 56 };
+    var vals = pts.map(function (p) { return p.v; });
+    var r = niceRange(Math.min.apply(null, vals), Math.max.apply(null, vals));
+    var f = frame(host, W, H, M, r.hi, r.lo), svg = f.svg, pw = W - M.l - M.r, n = pts.length;
+    function X(i) { return n === 1 ? M.l + pw / 2 : M.l + pw * i / (n - 1); }
+    function Y(val) { return M.t + f.ph - f.ph * (val - r.lo) / (r.hi - r.lo); }
+    el("line", { x1: M.l, x2: W - M.r, y1: M.t + f.ph, y2: M.t + f.ph, stroke: v("--muted"), "stroke-width": 1 }, svg);
+    var every = Math.max(1, Math.ceil(n / 12));
+    pts.forEach(function (p, i) { if (i % every === 0 || i === n - 1) { var t = el("text", { x: X(i), y: H - 10, "text-anchor": "middle", fill: v("--muted"), "font-size": 12 }, svg); t.textContent = p.label; } });
+    if (n > 1) el("path", { d: pts.map(function (p, i) { return (i ? "L" : "M") + X(i) + "," + Y(p.v); }).join(""), fill: "none", stroke: v("--s1"), "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }, svg);
+    pts.forEach(function (p, i) { el("circle", { cx: X(i), cy: Y(p.v), r: 4, fill: v("--s1"), stroke: v("--panel"), "stroke-width": 2 }, svg); });
+    var cross = el("line", { x1: 0, x2: 0, y1: M.t, y2: M.t + f.ph, stroke: v("--ink2"), "stroke-width": 1, opacity: 0 }, svg);
+    var w = n === 1 ? pw : pw / (n - 1);
+    pts.forEach(function (p, i) {
+      var hit = el("rect", { x: X(i) - w / 2, y: M.t, width: w, height: f.ph, fill: "transparent", tabindex: 0 }, svg);
+      function on() { cross.setAttribute("x1", X(i)); cross.setAttribute("x2", X(i)); cross.setAttribute("opacity", 0.5); showTip(host, f.tip, svg, X(i), Y(p.v), p.tip); }
+      function off() { cross.setAttribute("opacity", 0); f.tip.hidden = true; }
+      hit.addEventListener("mouseenter", on); hit.addEventListener("focus", on); hit.addEventListener("mouseleave", off); hit.addEventListener("blur", off);
+    });
+  }
+
+  function signed(n) { return n == null ? "—" : (n > 0 ? "+" : "") + fmt(n); }
+
+  // 選んだ作品（空なら全作品の合計）の日ごとの値
+  function urSeries(id) {
+    return UR.dates.map(function (d) {
+      if (id) { var r = UR.byGame[id] && UR.byGame[id][d]; return r ? { date: d, views: r.views, inc: r.inc, n: 1 } : null; }
+      var views = 0, inc = null, n = 0, ni = 0;
+      UR.games.forEach(function (g) { var r = UR.byGame[g.id] && UR.byGame[g.id][d]; if (r) { views += r.views; n++; if (r.inc != null) { inc = (inc || 0) + r.inc; ni++; } } });
+      return n ? { date: d, views: views, inc: inc, n: n, ni: ni } : null;
+    }).filter(Boolean);
+  }
+
+  function drawTrend() {
+    var id = urGame.value, mode = urMode.value, host = document.getElementById("c-ur"), note = document.getElementById("ur-trend-note");
+    var s = urSeries(id), name = id ? UR.names[id] : "全作品の合計", total = UR.games.length;
+    function who(p) { return !id && p.n < total ? "（" + p.n + "作品分）" : ""; }
+    if (!s.length) { host.innerHTML = '<p class="empty">この作品の記録はまだありません</p>'; note.textContent = ""; return; }
+    if (mode === "total") {
+      note.textContent = name + "：" + md(s[0].date) + " 〜 " + md(s[s.length - 1].date) + "（" + s.length + "日分）" + (s.length === 1 ? "。記録が2日分になると線になります" : "");
+      lineChart(host, s.map(function (p) { return { label: md(p.date), v: p.views, tip: md(p.date) + "（" + WD[dow(p.date)] + "）" + who(p) + "<br>閲覧 <b>" + fmt(p.views) + "</b> 回" }; }));
+    } else {
+      var inc = s.filter(function (p) { return p.inc != null; });
+      note.textContent = name + "：前回の記録から増えた閲覧数（PC を使わなかった日があると、その間の分がまとめて入ります）";
+      if (!inc.length) { host.innerHTML = '<p class="empty">記録が2日分になると表示されます（いまは ' + md(s[0].date) + ' の1日分）</p>'; return; }
+      barChart(host, inc.map(function (p) { return { label: md(p.date), v: Math.max(0, p.inc), tip: md(p.date) + "（" + WD[dow(p.date)] + "）" + (!id && p.ni < total ? "（" + p.ni + "作品分）" : "") + "<br>増加 <b>" + signed(p.inc) + "</b> 回" }; }), { h: 260, maxLabels: 12 });
+    }
+  }
+
+  function renderUR(j) {
+    var names = {}, byGame = {}, dset = {};
+    j.games.forEach(function (g) { names[g.id] = g.name; });
+    j.rows.forEach(function (r) { (byGame[r.id] = byGame[r.id] || {})[r.date] = { date: r.date, views: r.views, ratings: r.ratings, comments: r.comments }; dset[r.date] = 1; if (!names[r.id]) names[r.id] = r.id; });
+    // 前回の記録からの増加（作品ごと）
+    Object.keys(byGame).forEach(function (id) { var prev = null; Object.keys(byGame[id]).sort().forEach(function (d) { var r = byGame[id][d]; r.inc = prev ? r.views - prev.views : null; prev = r; }); });
+    var games = j.games.slice(); Object.keys(byGame).forEach(function (id) { if (!games.some(function (g) { return g.id === id; })) games.push({ id: id, name: id }); });
+    UR = { games: games, names: names, byGame: byGame, dates: Object.keys(dset).sort() };
+    if (!UR.dates.length) { urStatus.textContent = "まだ記録がありません。"; return; }
+
+    // 各作品のいちばん新しい記録
+    var latest = games.map(function (g) { var ds = byGame[g.id] ? Object.keys(byGame[g.id]).sort() : []; return ds.length ? { id: g.id, name: g.name, r: byGame[g.id][ds[ds.length - 1]] } : null; }).filter(Boolean);
+    var last = UR.dates[UR.dates.length - 1], tot = urSeries("").pop();
+    var sum = function (k) { return latest.reduce(function (a, x) { return a + x.r[k]; }, 0); };
+    document.getElementById("u-views").textContent = fmt(sum("views"));
+    document.getElementById("u-views-d").textContent = latest.length + "作品・" + md(last) + " 時点";
+    document.getElementById("u-inc").textContent = tot.inc == null ? "—" : signed(tot.inc);
+    document.getElementById("u-inc-d").textContent = tot.inc == null ? "記録2日目から出ます" : "閲覧の増加（" + md(last) + "）";
+    document.getElementById("u-rate").textContent = fmt(sum("ratings"));
+    document.getElementById("u-rate-d").textContent = latest.length + "作品";
+    document.getElementById("u-com").textContent = fmt(sum("comments"));
+    document.getElementById("u-com-d").textContent = latest.length + "作品";
+
+    // 作品ごとの横棒（多い順）
+    var sorted = latest.slice().sort(function (a, b) { return b.r.views - a.r.views; });
+    var top = sorted.length ? Math.max(1, sorted[0].r.views) : 1, box = document.getElementById("ur-bars");
+    box.innerHTML = "";
+    var tip = document.createElement("div"); tip.className = "tip"; tip.hidden = true;
+    sorted.forEach(function (x) {
+      var row = document.createElement("div"); row.className = "hb"; row.tabIndex = 0;
+      var t = document.createElement("div"); t.className = "top";
+      var a = document.createElement("span"); a.textContent = x.name;
+      var b = document.createElement("span"); b.innerHTML = "<b>" + fmt(x.r.views) + "</b> 回";
+      t.appendChild(a); t.appendChild(b);
+      var tr = document.createElement("div"); tr.className = "track";
+      var bar = document.createElement("div"); bar.className = "bar"; bar.style.width = (100 * x.r.views / top) + "%";
+      tr.appendChild(bar); row.appendChild(t); row.appendChild(tr); box.appendChild(row);
+      function on() {
+        tip.innerHTML = x.name + "<br>閲覧 <b>" + fmt(x.r.views) + "</b> ／ 評価 <b>" + fmt(x.r.ratings) + "</b> ／ コメント <b>" + fmt(x.r.comments) + "</b><br>前回比 " + (x.r.inc == null ? "—（記録2日目から）" : signed(x.r.inc)) + "・" + md(x.r.date) + " の記録";
+        tip.hidden = false;
+        var br = bar.getBoundingClientRect(), hr = box.getBoundingClientRect();
+        tip.style.left = Math.min(Math.max(br.right - hr.left, 140), hr.width - 140) + "px";
+        tip.style.top = (br.top - hr.top) + "px";
+      }
+      row.addEventListener("mouseenter", on); row.addEventListener("focus", on);
+      row.addEventListener("mouseleave", function () { tip.hidden = true; }); row.addEventListener("blur", function () { tip.hidden = true; });
+    });
+    box.appendChild(tip);
+    document.getElementById("ur-bars-note").textContent = md(last) + " の記録・閲覧の多い順（マウスを乗せると評価・コメントも出ます）";
+
+    // 作品の選択肢
+    var keep = urGame.value;
+    urGame.innerHTML = '<option value="">全作品の合計</option>';
+    games.forEach(function (g) { var o = document.createElement("option"); o.value = g.id; o.textContent = g.name; urGame.appendChild(o); });
+    urGame.value = names[keep] ? keep : "";
+    drawTrend();
+
+    // 表
+    function cells(tbody, list) { var tr = document.createElement("tr"); list.forEach(function (c) { var td = document.createElement("td"); td.textContent = c[0]; if (c[1]) td.className = "n"; tr.appendChild(td); }); tbody.appendChild(tr); }
+    var tb = document.getElementById("ur-tbl"); tb.innerHTML = "";
+    sorted.forEach(function (x) { cells(tb, [[x.name], [fmt(x.r.views), 1], [x.r.inc == null ? "—" : signed(x.r.inc), 1], [fmt(x.r.ratings), 1], [fmt(x.r.comments), 1], [x.r.date.replace(/-/g, "/")]]); });
+    var th = document.getElementById("ur-hist"); th.innerHTML = "";
+    UR.dates.slice().reverse().forEach(function (d) {
+      games.forEach(function (g) { var r = byGame[g.id] && byGame[g.id][d]; if (r) cells(th, [[d.replace(/-/g, "/")], [g.name], [fmt(r.views), 1], [r.inc == null ? "—" : signed(r.inc), 1], [fmt(r.ratings), 1], [fmt(r.comments), 1]]); });
+    });
+
+    urStatus.className = "status";
+    urStatus.textContent = "最後の記録：" + (j.updated || last) + "（" + UR.dates.length + "日分）。1日1回の記録なので、その日の途中の増え方は分かりません";
+  }
+
+  function loadUR() {
+    urStatus.className = "status"; urStatus.textContent = "unityroom の記録を読み込み中…";
+    fetch("unityroom.json", { cache: "no-store" }).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    }).then(renderUR).catch(function (e) {
+      urStatus.className = "status err";
+      urStatus.textContent = "unityroom の記録（unityroom.json）を読み込めませんでした（" + e.message + "）。stats フォルダに unityroom.json をアップロードしたか確認してください。";
+    });
+  }
+  urGame.addEventListener("change", function () { if (UR) drawTrend(); });
+  urMode.addEventListener("change", function () { if (UR) drawTrend(); });
+
+  btn.addEventListener("click", function () { load(); loadUR(); });
   load();
+  loadUR();
 })();
 </script>
 </body>
